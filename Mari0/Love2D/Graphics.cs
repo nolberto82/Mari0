@@ -18,6 +18,7 @@ namespace Love2D
         private Color backgroundcolor;
         private float transX;
         private float transY;
+        private string graphicfilter;
 
         public Graphics(Lua l, Game g)
         {
@@ -39,6 +40,9 @@ namespace Love2D
             lua.RegisterFunction("love.graphics.getBackgroundColor", this, typeof(Graphics).GetMethod("getBackgroundColor"));
             lua.RegisterFunction("love.graphics.draw", this, typeof(Graphics).GetMethod("draw"));
             lua.RegisterFunction("love.graphics.translate", this, typeof(Graphics).GetMethod("translate"));
+            lua.RegisterFunction("love.graphics.setDefaultFilter", this, typeof(Graphics).GetMethod("setDefaultFilter"));
+            lua.RegisterFunction("love.graphics.newSpriteBatch", this, typeof(Graphics).GetMethod("newSpriteBatch"));
+            lua.RegisterFunction("love.graphics.setScissor", this, typeof(Graphics).GetMethod("setScissor"));
         }
 
         void translatecoords(ref float x, ref float y)
@@ -70,13 +74,15 @@ namespace Love2D
 
             SpriteEffects flip = sx < 0 ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
 
-            if (type.ToString() == "bighat")
+            if (type.ToString() == "grow")
             {
                 if (sx < 0)
                 {
 
                 }
             }
+
+            sb.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, getDefaultFilter());
 
             if (quad != null)
             {
@@ -87,6 +93,33 @@ namespace Love2D
             {
                 sb.Draw(img.texture, new Vector2(x, y), null, currentcolor, r, new Vector2(ox, oy), new Vector2(Math.Abs(sx), sy), flip, 1f);
             }
+
+            sb.End();
+        }
+
+        public void newSpriteBatch(params object[] args)
+        {
+
+        }
+
+        public void setScissor(params object[] args)
+        {
+
+        }
+
+        public void setDefaultFilter(params string[] args)
+        {
+            graphicfilter = args[0];
+        }
+
+        public SamplerState getDefaultFilter()
+        {
+            if (graphicfilter == "nearest")
+            {
+                return SamplerState.PointClamp;
+            }
+
+            return null;
         }
 
         public Image newImage(params string[] args)

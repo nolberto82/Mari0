@@ -1,4 +1,4 @@
-﻿goomba = class:new()
+goomba = class:new()
 
 function goomba:init(x, y, t)
 	--PHYSICS STUFF

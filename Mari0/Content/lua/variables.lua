@@ -1,4 +1,4 @@
-﻿--SETABLE VARS--
+--SETABLE VARS--
 --almost all vars are in "blocks", "blocks per second" or just "seconds". Should be obvious enough what's what.
 portalgundelay = 0.2
 gellifetime = 2

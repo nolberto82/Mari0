@@ -1,13 +1,13 @@
 bighatoffsets = {}
-bighatoffsets["idle"] = {{-4, -2}, {-5, -2}}
-bighatoffsets["fire"] = {{-5, -4}, {-5, -4}}
-bighatoffsets["running"] = {{{-5, -4}, {-4, -3}, {-3, -2}}, {{-4, -4}, {-5, -3}, {-6, -2}}}
-bighatoffsets["sliding"] = {{-5, -2}, {-4, -2}}
-bighatoffsets["jumping"] = {{-4, -4}, {-5, -4}}
-bighatoffsets["falling"] = {{-4, -2}, {-4, -2}}
+bighatoffsets["idle"] = {-4, -2}
+bighatoffsets["fire"] = {-5, -4}
+bighatoffsets["running"] = {{-5, -4}, {-4, -3}, {-3, -2}}
+bighatoffsets["sliding"] = {-5, -2}
+bighatoffsets["jumping"] = {-4, -4}
+bighatoffsets["falling"] = {-4, -2}
 bighatoffsets["climbing"] = {{-4, -4}, {-4, -4}}
-bighatoffsets["swimming"] = {{{-5, -4}, {-5, -4}},{{-5, -4}, {-5, -4}}}
-bighatoffsets["ducking"] = {{-5, -12}, {-5, -12}}
+bighatoffsets["swimming"] = {{-5, -4}, {-5, -4}}
+bighatoffsets["ducking"] = {-5, -12}
 bighatoffsets["dead"] = false
 
 bighat = {}

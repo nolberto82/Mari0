@@ -1,15 +1,14 @@
-﻿mario = class:new()
+mario = class:new()
 
 function mario:init(x, y, i, animation, size, t)
 	self.playernumber = i or 1
-
 	if bigmario then
 		self.size = 1
 	else
 		self.size = size or 1
 	end
 	self.t = t or "portal"
-	--self.size = 3
+
 	--PHYSICS STUFF
 	self.speedx = 0
 	self.speedy = 0
@@ -66,8 +65,6 @@ function mario:init(x, y, i, animation, size, t)
 	self.drawable = true
 	self.quad = marioidle[3]
 	self.colors = mariocolors[self.playernumber]
-    --self.size = 2
-
 	if self.size == 1 then
 		self.offsetX = 6
 		self.offsetY = 3
@@ -77,6 +74,7 @@ function mario:init(x, y, i, animation, size, t)
 		self.graphic = self.smallgraphic
 	else
 		self.graphic = self.biggraphic
+
 		self.quadcenterY = 20
 		self.quadcenterX = 9
 		self.offsetY = -3
@@ -108,6 +106,15 @@ function mario:init(x, y, i, animation, size, t)
 	--end
 
 	self.customscissor = nil
+
+
+	if players == 1 then
+		self.portal1color = { 60/255, 188/255, 252/255}
+		self.portal2color = {232/255, 130/255,  30/255}
+	else
+		self.portal1color = portalcolor[self.playernumber][1]
+		self.portal2color = portalcolor[self.playernumber][2]
+	end
 
 	--OTHER STUFF!
 	self.controlsenabled = true
@@ -217,12 +224,9 @@ function mario:init(x, y, i, animation, size, t)
 	end
 
 	self:setquad()
-
 end
 
 function mario:update(dt)
-    --print(self.x)
-
 	self.passivemoved = false
 	--rotate back to 0 (portals)
 	self.rotation = math.fmod(self.rotation, math.pi*2)
@@ -922,7 +926,7 @@ function mario:update(dt)
 			end
 		end
 
-		--check for pipe pipe pipeï¿½
+		--check for pipe pipe pipe�
 		if inmap(math.floor(self.x+30/16), math.floor(self.y+self.height+20/16)) and downkey(self.playernumber) and self.falling == false and self.jumping == false then
 			local t2 = map[math.floor(self.x+30/16)][math.floor(self.y+self.height+20/16)][2]
 			if t2 and entityquads[t2].t == "pipe" then
@@ -933,6 +937,8 @@ function mario:update(dt)
 				return
 			end
 		end
+
+		self:updateangle()
 
 		--Portaldots
 		self.portaldotstimer = self.portaldotstimer + dt
@@ -1007,9 +1013,11 @@ function mario:update(dt)
 		end
 	end
 
-	--self.runframe = 3
-	self.animationstate = "sliding"
 	self:setquad()
+end
+
+function mario:updateangle()
+
 end
 
 function mario:movement(dt)
@@ -1017,6 +1025,25 @@ function mario:movement(dt)
 	local maxwalkspeed = maxwalkspeed
 	local runacceleration = runacceleration
 	local walkacceleration = walkacceleration
+	--Orange gel
+	--not in air
+	if self.falling == false and self.jumping == false then
+		--bottom on grid
+		if math.fmod(self.y+self.height, 1) == 0 then
+			local x = round(self.x+self.width/2+.5)
+			local y = self.y+self.height+1
+			--x and y in map
+			if inmap(x, y) then
+				--top of block orange
+				if map[x][y]["gels"]["top"] == 2 then
+					maxrunspeed = gelmaxrunspeed
+					maxwalkspeed = gelmaxwalkspeed
+					runacceleration = gelrunacceleration
+					walkacceleration = gelwalkacceleration
+				end
+			end
+		end
+	end
 
 	--Run animation
 	if self.animationstate == "running" then
@@ -1498,8 +1525,8 @@ function mario:jump()
 				self.springhigh = true
 				return
 			end
-			
-			if self.falling == false or self.falling == true then
+
+			if self.falling == false then
 				if self.size == 1 then
 					playsound(jumpsound)
 				else
@@ -1508,6 +1535,7 @@ function mario:jump()
 
 				local force = -jumpforce - (math.abs(self.speedx) / maxrunspeed)*jumpforceadd
 				force = math.max(-jumpforce - jumpforceadd, force)
+
 				self.speedy = force
 				self.jumping = true
 				self.animationstate = "jumping"
@@ -1931,6 +1959,7 @@ function mario:leftcollide(a, b)
 	if self:globalcollide(a, b) then
 		return false
 	end
+
 	--star logic
 	if self.starred or bigmario then
 		if self:starcollide(a, b) then
@@ -2529,11 +2558,11 @@ function mario:startfall()
 end
 
 function mario:die(how)
-	--print("Death cause: " .. how)
+	print("Death cause: " .. how)
 
 	if how ~= "pit" and how ~= "time" then
-		if self.size > -1 then
-			--self:shrink()
+		if self.size > 1 then
+			self:shrink()
 			return
 		end
 	elseif how ~= "time" then
@@ -3124,8 +3153,4 @@ function mario:respawn()
 
 	self.controlsenabled = true
 	self.active = true
-end
-
-function mario:updateangle()
-
 end

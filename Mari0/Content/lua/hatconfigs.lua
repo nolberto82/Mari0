@@ -1,9 +1,9 @@
 hatoffsets = {}
-hatoffsets["idle"] = {{0, 6}, {3, 6}}
-hatoffsets["running"] = {{{0, 6}, {0, 6}, {-1, 5}}, {{3, 6}, {3, 6}, {4, 5}}}
-hatoffsets["sliding"] = {{0, 6}, {3, 6}}
-hatoffsets["jumping"] = {{0, 5}, {3, 5}}
-hatoffsets["falling"] = {{0, 0}, {0, 0}}
+hatoffsets["idle"] = {0, 0}
+hatoffsets["running"] = {{0, 0}, {0, 0}, {-1, -1}}
+hatoffsets["sliding"] = {0, 0}
+hatoffsets["jumping"] = {0, -1}
+hatoffsets["falling"] = {0, 0}
 hatoffsets["climbing"] = {{2, 0}, {2, -1}}
 hatoffsets["swimming"] = {{1, -1}, {1, -1}}
 hatoffsets["dead"] = false

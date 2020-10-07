@@ -46,13 +46,7 @@ namespace Mari0
 
         protected override void Draw(GameTime gameTime)
         {
-            //GraphicsDevice.Clear(Color.CornflowerBlue);
-
-            sb.Begin(SpriteSortMode.Immediate,BlendState.AlphaBlend,SamplerState.PointClamp);
-
             LuaDraw();
-
-            sb.End();
 
             base.Draw(gameTime);
         }

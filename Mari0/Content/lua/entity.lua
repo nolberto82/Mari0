@@ -1,4 +1,4 @@
-﻿entity = class:new()
+entity = class:new()
 
 entitylist = {	
 	"remove",

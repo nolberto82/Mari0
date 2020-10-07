@@ -1,4 +1,4 @@
-﻿function levelscreen_load(reason, i)
+function levelscreen_load(reason, i)
 	if reason ~= "sublevel" and reason ~= "vine" and testlevel then
 		marioworld = testlevelworld
 		mariolevel = testlevellevel
@@ -80,7 +80,6 @@
 	if updated then
 		saveconfig()
 	end
-	levelscreentimer = 5
 end
 
 function levelscreen_update(dt)

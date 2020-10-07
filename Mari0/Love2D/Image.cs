@@ -23,9 +23,9 @@ namespace Love2D
             lua.RegisterFunction("love.image.newImageData", this, typeof(Image).GetMethod("newImageData"));
         }
 
-        public Image(string filepath, GraphicsDevice gd)
+        public Image(string path, GraphicsDevice gd)
         {
-            using (FileStream filestream = new FileStream(filepath, FileMode.Open, FileAccess.Read))
+            using (FileStream filestream = new FileStream(path, FileMode.Open, FileAccess.Read))
             {
                 texture = Texture2D.FromStream(gd, filestream);
             }

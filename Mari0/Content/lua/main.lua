@@ -1,23 +1,30 @@
-﻿
-function love.load()
-	require "class"
-	require "variables"
-	require "quad"
-	require "entity"
-	require "menu"
-	require "hatconfigs"
-	require "bighatconfigs"
-	require "game"
-	require "levelscreen"
-	require "screenboundary"
-	require "tile"
-	require "goomba"
-	require "mario"
-	require "physics"
+--[[
+	PRETTY MUCH EVERYTHING BY MAURICE GUÉGAN AND IF SOMETHING ISN'T BY ME THEN IT SHOULD BE OBVIOUS OR NOBODY CARES
 
-	width = 25
-	graphicspack = "smb"
-	yoffset = 0
+	Licensed under MIT. You should not have received a copy of the MIT license with this program because just google for it, cmon.
+]]
+
+function love.load()
+	marioversion = 1006
+	versionstring = "version 1.6"
+	shaderlist = love.filesystem.getDirectoryItems( "shaders/" )
+	dlclist = {"dlc_a_portal_tribute", "dlc_acid_trip", "dlc_escape_the_lab", "dlc_scienceandstuff", "dlc_smb2J", "dlc_the_untitled_game"}
+
+	local rem
+	for i, v in pairs(shaderlist) do
+		if v == "init.lua" then
+			rem = i
+		else
+			shaderlist[i] = string.sub(v, 1, string.len(v)-5)
+		end
+	end
+
+	table.remove(shaderlist, rem)
+	table.insert(shaderlist, 1, "none")
+	currentshaderi1 = 1
+	currentshaderi2 = 1
+
+	hatcount = #love.filesystem.getDirectoryItems("graphics/SMB/hats")
 
 	if not pcall(loadconfig) then
 		players = 1
@@ -25,15 +32,15 @@ function love.load()
 	end
 
 	saveconfig()
-
-	changescale(scale)
+	width = 25
+	fullscreen = false
+	changescale(scale, fullscreen)
 	love.window.setTitle( "Mari0" )
 
-	--Backgroundcolors
-	backgroundcolor = {}
-	backgroundcolor[1] = { 92/255, 148/255, 252/255}
-	backgroundcolor[2] = {  0/255,   0/255,   0/255}
-	backgroundcolor[3] = { 32/255,  56/255, 236/255}
+	love.graphics.setDefaultFilter("nearest", "nearest")
+
+	love.graphics.setBackgroundColor(0, 0, 0)
+
 
 	fontimage = love.graphics.newImage("graphics/SMB/font.png")
 	fontglyphs = "0123456789abcdefghijklmnopqrstuvwxyz.:/,'C-_>* !{}?"
@@ -42,15 +49,93 @@ function love.load()
 		fontquads[string.sub(fontglyphs, i, i)] = love.graphics.newQuad((i-1)*8, 0, 8, 8, 512, 8)
 	end
 
-	love.graphics.clear()
+	math.randomseed(os.time());math.random();math.random()
 
+	love.graphics.clear()
+	love.graphics.setColor(0.4, 0.4, 0.4)
+	loadingtexts = {"reticulating splines..", "loading..", "booting glados..", "growing potatoes..", "voting against acta..", "rendering important stuff..",
+					"baking cake..", "happy explosion day..", "raising coolness by 20 percent..", "yay facepunch..", "stabbing myself..", "sharpening knives..",
+					"tanaka, thai kick..", "loading game genie.."}
+	loadingtext = loadingtexts[math.random(#loadingtexts)]
+	properprint(loadingtext, 25*8*scale-string.len(loadingtext)*4*scale, 108*scale)
+	--love.graphics.present()
+	--require ALL the files!
+	--require "shaders"
+	require "variables"
+	require "class"
+	require "sha1"
+
+	require "intro"
+	require "menu"
+	require "levelscreen"
+	require "game"
+	require "editor"
+	require "physics"
+	require "quad"
+	require "entity"
+	require "tile"
+	require "mario"
+	require "goomba"
+	require "koopa"
+	require "cheepcheep"
+	require "mushroom"
+	require "hatconfigs"
+	require "bighatconfigs"
+	require "flower"
+	require "star"
+	require "oneup"
+	require "coinblockanimation"
+	require "scrollingscore"
+	require "platform"
+	require "platformspawner"
+	require "screenboundary"
+	require "bulletbill"
+	require "hammerbro"
+	require "fireball"
+	require "gui"
+	require "blockdebris"
+	require "firework"
+	require "plant"
+	require "castlefire"
+	require "fire"
+	require "bowser"
+	require "vine"
+	require "spring"
+	require "flyingfish"
+	require "upfire"
+	require "seesaw"
+	require "seesawplatform"
+	require "lakito"
+	require "bubble"
+	require "squid"
+	require "miniblock"
+	require "notgate"
+	require "musicloader"
+
+	graphicspack = "SMB" --SMB, ALLSTARS
 	playertypei = 1
 	playertype = playertypelist[playertypei] --portal, minecraft
+
+	if volume == 0 then
+		soundenabled = false
+	else
+		soundenabled = true
+	end
+	love.filesystem.createDirectory( "mappacks" )
+	editormode = false
+	yoffset = 0
 
 	uispace = math.floor(width*16*scale/4)
 	guielements = {}
 
+	--Backgroundcolors
+	backgroundcolor = {}
+	backgroundcolor[1] = { 92/255, 148/255, 252/255}
+	backgroundcolor[2] = {  0/255,   0/255,   0/255}
+	backgroundcolor[3] = { 32/255,  56/255, 236/255}
+
 	--IMAGES--
+
 	menuselection = love.graphics.newImage("graphics/" .. graphicspack .. "/menuselect.png")
 	mappackback = love.graphics.newImage("graphics/" .. graphicspack .. "/mappackback.png")
 	mappacknoicon = love.graphics.newImage("graphics/" .. graphicspack .. "/mappacknoicon.png")
@@ -450,6 +535,11 @@ function love.load()
 		bigmarioduck[i] = love.graphics.newQuad(260, (i-1)*36, 20, 36, 512, 256)
 	end
 
+	--Menu shit
+	huebarimg = love.graphics.newImage("graphics/" .. graphicspack .. "/huebar.png")
+	huebarmarkerimg = love.graphics.newImage("graphics/" .. graphicspack .. "/huebarmarker.png")
+	volumesliderimg = love.graphics.newImage("graphics/" .. graphicspack .. "/volumeslider.png")
+
 	--optionsmenu
 	skinpuppet = {}
 	secondskinpuppet = {}
@@ -458,132 +548,264 @@ function love.load()
 		secondskinpuppet[i] = love.graphics.newImage("graphics/" .. graphicspack .. "/options/secondskin" .. i .. ".png")
 	end
 
-	--menu_load()
+	--Ripping off
+	minecraftbreakimg = love.graphics.newImage("graphics/Minecraft/blockbreak.png")
+	minecraftbreakquad = {}
+	for i = 1, 10 do
+		minecraftbreakquad[i] = love.graphics.newQuad((i-1)*16, 0, 16, 16, 160, 16)
+	end
+	minecraftgui = love.graphics.newImage("graphics/Minecraft/gui.png")
+	minecraftselected = love.graphics.newImage("graphics/Minecraft/selected.png")
+
+	--AUDIO--
+	--sounds
+	jumpsound = love.audio.newSource("sounds/jump.wav", "static");love.audio.stop(jumpsound)
+	jumpbigsound = love.audio.newSource("sounds/jumpbig.wav", "static");love.audio.stop(jumpbigsound)
+	stompsound = love.audio.newSource("sounds/stomp.wav", "static");stompsound:setVolume(0);stompsound:play();stompsound:stop();stompsound:setVolume(1)
+	shotsound = love.audio.newSource("sounds/shot.wav", "static");shotsound:setVolume(0);shotsound:play();shotsound:stop();shotsound:setVolume(1)
+	blockhitsound = love.audio.newSource("sounds/blockhit.wav", "static");blockhitsound:setVolume(0);blockhitsound:play();blockhitsound:stop();blockhitsound:setVolume(1)
+	blockbreaksound = love.audio.newSource("sounds/blockbreak.wav", "static");blockbreaksound:setVolume(0);blockbreaksound:play();blockbreaksound:stop();blockbreaksound:setVolume(1)
+	coinsound = love.audio.newSource("sounds/coin.wav", "static");coinsound:setVolume(0);coinsound:play();coinsound:stop();coinsound:setVolume(1)
+	pipesound = love.audio.newSource("sounds/pipe.wav", "static");pipesound:setVolume(0);pipesound:play();pipesound:stop();pipesound:setVolume(1)
+	boomsound = love.audio.newSource("sounds/boom.wav", "static");boomsound:setVolume(0);boomsound:play();boomsound:stop();boomsound:setVolume(1)
+	mushroomappearsound = love.audio.newSource("sounds/mushroomappear.wav", "static");mushroomappearsound:setVolume(0);mushroomappearsound:play();mushroomappearsound:stop();mushroomappearsound:setVolume(1)
+	mushroomeatsound = love.audio.newSource("sounds/mushroomeat.wav", "static");mushroomeatsound:setVolume(0);mushroomeatsound:play();mushroomeatsound:stop();mushroomeatsound:setVolume(1)
+	shrinksound = love.audio.newSource("sounds/shrink.wav", "static");shrinksound:setVolume(0);shrinksound:play();shrinksound:stop();shrinksound:setVolume(1)
+	deathsound = love.audio.newSource("sounds/death.wav", "static");deathsound:setVolume(0);deathsound:play();deathsound:stop();deathsound:setVolume(1)
+	gameoversound = love.audio.newSource("sounds/gameover.wav", "static");gameoversound:setVolume(0);gameoversound:play();gameoversound:stop();gameoversound:setVolume(1)
+	fireballsound = love.audio.newSource("sounds/fireball.wav", "static");fireballsound:setVolume(0);fireballsound:play();fireballsound:stop();fireballsound:setVolume(1)
+	oneupsound = love.audio.newSource("sounds/oneup.wav", "static");oneupsound:setVolume(0);oneupsound:play();oneupsound:stop();oneupsound:setVolume(1)
+	levelendsound = love.audio.newSource("sounds/levelend.wav", "static");levelendsound:setVolume(0);levelendsound:play();levelendsound:stop();levelendsound:setVolume(1)
+	castleendsound = love.audio.newSource("sounds/castleend.wav", "static");castleendsound:setVolume(0);castleendsound:play();castleendsound:stop();castleendsound:setVolume(1)
+	scoreringsound = love.audio.newSource("sounds/scorering.wav", "static");scoreringsound:setVolume(0);scoreringsound:play();scoreringsound:stop();scoreringsound:setVolume(1);scoreringsound:setLooping(true)
+	intermissionsound = love.audio.newSource("sounds/intermission.wav", "static");intermissionsound:setVolume(0);intermissionsound:play();intermissionsound:stop();intermissionsound:setVolume(1)
+	firesound = love.audio.newSource("sounds/fire.wav", "static");firesound:setVolume(0);firesound:play();firesound:stop();firesound:setVolume(1)
+	bridgebreaksound = love.audio.newSource("sounds/bridgebreak.wav", "static");bridgebreaksound:setVolume(0);bridgebreaksound:play();bridgebreaksound:stop();bridgebreaksound:setVolume(1)
+	bowserfallsound = love.audio.newSource("sounds/bowserfall.wav", "static");bowserfallsound:setVolume(0);bowserfallsound:play();bowserfallsound:stop();bowserfallsound:setVolume(1)
+	vinesound = love.audio.newSource("sounds/vine.wav", "static");vinesound:setVolume(0);vinesound:play();vinesound:stop();vinesound:setVolume(1)
+	swimsound = love.audio.newSource("sounds/swim.wav", "static");swimsound:setVolume(0);swimsound:play();swimsound:stop();swimsound:setVolume(1)
+	konamisound = love.audio.newSource("sounds/konami.wav", "static");konamisound:setVolume(0);konamisound:play();konamisound:stop();konamisound:setVolume(1)
+	pausesound = love.audio.newSource("sounds/pause.wav", "static");pausesound:setVolume(0);pausesound:play();pausesound:stop();pausesound:setVolume(1)
+	bulletbillsound = love.audio.newSource("sounds/bulletbill.wav", "static");pausesound:setVolume(0);pausesound:play();pausesound:stop();pausesound:setVolume(1)
+	stabsound = love.audio.newSource("sounds/stab.wav", "static")
+
+	lowtime = love.audio.newSource("sounds/lowtime.wav", "static")
+
+	--music
+	--[[
+	overworldmusic = love.audio.newSource("sounds/overworld.wav", "stream");overworldmusic:setLooping(true)
+	undergroundmusic = love.audio.newSource("sounds/underground.wav", "stream");undergroundmusic:setLooping(true)
+	castlemusic = love.audio.newSource("sounds/castle.wav", "stream");castlemusic:setLooping(true)
+	underwatermusic = love.audio.newSource("sounds/underwater.wav", "stream");underwatermusic:setLooping(true)
+	starmusic = love.audio.newSource("sounds/starmusic.wav", "stream");starmusic:setLooping(true)
+	princessmusic = love.audio.newSource("sounds/princessmusic.wav", "stream");princessmusic:setLooping(true)
+
+	overworldmusicfast = love.audio.newSource("sounds/overworld-fast.wav", "stream");overworldmusicfast:setLooping(true)
+	undergroundmusicfast = love.audio.newSource("sounds/underground-fast.wav", "stream");undergroundmusicfast:setLooping(true)
+	castlemusicfast = love.audio.newSource("sounds/castle-fast.wav", "stream");castlemusicfast:setLooping(true)
+	underwatermusicfast = love.audio.newSource("sounds/underwater-fast.wav", "stream");underwatermusicfast:setLooping(true)
+	starmusicfast = love.audio.newSource("sounds/starmusic-fast.wav", "stream");starmusicfast:setLooping(true)
+	]]
+
+	soundlist = {jumpsound, jumpbigsound, stompsound, shotsound, blockhitsound, blockbreaksound, coinsound, pipesound, boomsound, mushroomappearsound, mushroomeatsound, shrinksound, deathsound, gameoversound,
+				fireballsound, oneupsound, levelendsound, castleendsound, scoreringsound, intermissionsound, firesound, bridgebreaksound, bowserfallsound, vinesound, swimsound, lowtime, konamisound, pausesound, stabsound, bulletbillsound}
+
+	-- musiclist = {overworldmusic, undergroundmusic, castlemusic, underwatermusic, starmusic}
+	-- musiclistfast = {overworldmusicfast, undergroundmusicfast, castlemusicfast, underwatermusicfast, starmusicfast}
+
+	musici = 2
+
+	--shaders:init()
+	--shaders:set(1, shaderlist[currentshaderi1])
+	--shaders:set(2, shaderlist[currentshaderi2])
+
+	for i, v in pairs(dlclist) do
+		delete_mappack(v)
+	end
+
 	game_load()
 end
 
 function love.update(dt)
+	if music then
+		music:update()
+	end
+
+	speed = 1
+	speedtarget = 1
+	dt = math.min(0.01666667, dt)
+
+	--speed
+	if speed ~= speedtarget then
+		if speed > speedtarget then
+			speed = math.max(speedtarget, speed+(speedtarget-speed)*dt*5)
+		elseif speed < speedtarget then
+			speed = math.min(speedtarget, speed+(speedtarget-speed)*dt*5)
+		end
+
+		if math.abs(speed-speedtarget) < 0.02 then
+			speed = speedtarget
+		end
+
+		if speed > 0 then
+			for i, v in pairs(soundlist) do
+				v:setPitch( speed )
+			end
+			music.pitch = speed
+			love.audio.setVolume(volume)
+		else
+			love.audio.setVolume(0)
+		end
+	end
+
+	dt = dt * speed
+	gdt = dt
+
+	if frameadvance == 1 then
+		return
+	elseif frameadvance == 2 then
+		frameadvance = 1
+	end
+
+	if skipupdate then
+		skipupdate = false
+		return
+	end
+
+	--netplay_update(dt)
+	keyprompt_update()
+
 	if gamestate == "menu" or gamestate == "mappackmenu" or gamestate == "onlinemenu" or gamestate == "options" then
 		menu_update(dt)
 	elseif gamestate == "levelscreen" or gamestate == "gameover" or gamestate == "sublevelscreen" or gamestate == "mappackfinished" then
 		levelscreen_update(dt)
 	elseif gamestate == "game" then
 		game_update(dt)
+	elseif gamestate == "intro" then
+		intro_update(dt)
+	end
+
+	for i, v in pairs(guielements) do
+		v:update(dt)
 	end
 end
 
 function love.draw()
+	--shaders:predraw()
+
 	if gamestate == "menu" or gamestate == "mappackmenu" or gamestate == "onlinemenu" or gamestate == "options" then
 		menu_draw()
 	elseif gamestate == "levelscreen" or gamestate == "gameover" or gamestate == "mappackfinished" then
 		levelscreen_draw()
 	elseif gamestate == "game" then
 		game_draw()
+	elseif gamestate == "intro" then
+		intro_draw()
 	end
 
-	love.graphics.setColor(1, 1, 1)
+	--shaders:postdraw()
+
+	love.graphics.setColor(1, 1,1)
 end
 
-function love.keypressed(key, unicode)
---	if keyprompt then
---		keypromptenter("key", key)
---		return
---	end
-
-	for i, v in pairs(guielements) do
-		if v:keypress(key) then
-			return
-		end
-	end
-
-	if gamestate == "menu" or gamestate == "mappackmenu" or gamestate == "onlinemenu" or gamestate == "options" then
-		--konami code
-		if key == konami[konamii] then
-			konamii = konamii + 1
-			if konamii == #konami+1 then
-				playsound(konamisound)
-				gamefinished = true
-				saveconfig()
-				konamii = 1
+function saveconfig()
+	local s = ""
+	for i = 1, #controls do
+		s = s .. "playercontrols:" .. i .. ":"
+		local count = 0
+		for j, k in pairs(controls[i]) do
+			local c = ""
+			for l = 1, #controls[i][j] do
+				c = c .. controls[i][j][l]
+				if l ~= #controls[i][j] then
+					c = c ..  "-"
+				end
 			end
-		else
-			konamii = 1
-		end
-		menu_keypressed(key, unicode)
-	elseif gamestate == "game" then
-		game_keypressed(key, unicode)
-	end
-end
-
-function love.keyreleased(key, unicode)
-	if gamestate == "menu" or gamestate == "options" then
-		menu_keyreleased(key, unicode)
-	elseif gamestate == "game" then
-		game_keyreleased(key, unicode)
-	end
-end
-
-function string:split(delimiter)
-	local result = {}
-	local from  = 1
-	local delim_from, delim_to = string.find( self, delimiter, from  )
-	while delim_from do
-		table.insert( result, string.sub( self, from , delim_from-1 ) )
-		from = delim_to + 1
-		delim_from, delim_to = string.find( self, delimiter, from  )
-	end
-	table.insert( result, string.sub( self, from  ) )
-	return result
-end
-
-function properprint(s, x, y)
-	local startx = x
-	for i = 1, string.len(tostring(s)) do
-		local char = string.sub(s, i, i)
-		if char == "|" then
-			x = startx-((i)*8)*scale
-			y = y + 10*scale
-		elseif fontquads[char] then
-			love.graphics.draw(fontimage, fontquads[char], x+((i-1)*8)*scale, y, 0, scale, scale)
-		end
-	end
-end
-
-function getaveragecolor(imgdata, cox, coy)
-	local xstart = (cox-1)*17
-	local ystart = (coy-1)*17
-
-	local r, g, b = 0, 0, 0
-
-	local count = 0
-
-	for x = xstart, xstart+15 do
-		for y = ystart, ystart+15 do
-			local pr, pg, pb, a = imgdata:getPixel(x, y)
-			if a > 0.5 then
-				r, g, b = r+pr, g+pg, b+pb
-				count = count + 1
+			s = s .. j .. "-" .. c
+			count = count + 1
+			if count == 12 then
+				s = s .. ";"
+			else
+				s = s .. ","
 			end
 		end
 	end
 
-	r, g, b = r/count, g/count, b/count
-
-	return r, g, b
-end
-
-function changescale(s)
-	scale = s
-
-	uispace = math.floor(width*16*scale/4)
-	love.window.setMode(width*16*scale, 224*scale, {fullscreen=false, vsync=vsync}) --27x14 blocks (15 blocks actual height)
-
-	gamewidth = love.graphics.getWidth()
-	gameheight = love.graphics.getHeight()
-
-	if shaders then
-		shaders:refresh()
+	for i = 1, #mariocolors do
+		s = s .. "playercolors:" .. i .. ":"
+		for j = 1, 3 do
+			for k = 1, 3 do
+				s = s .. mariocolors[i][j][k]
+				if j == 3 and k == 3 then
+					s = s .. ";"
+				else
+					s = s .. ","
+				end
+			end
+		end
 	end
+
+	for i = 1, #portalhues do
+		s = s .. "portalhues:" .. i .. ":"
+		s = s .. round(portalhues[i][1], 4) .. "," .. round(portalhues[i][2], 4) .. ";"
+	end
+
+	for i = 1, #mariohats do
+		s = s .. "mariohats:" .. i
+		if #mariohats[i] > 0 then
+			s = s .. ":"
+		end
+		for j = 1, #mariohats[i] do
+			s = s .. mariohats[i][j]
+			if j == #mariohats[i] then
+				s = s .. ";"
+			else
+				s = s .. ","
+			end
+		end
+
+		if #mariohats[i] == 0 then
+			s = s .. ";"
+		end
+	end
+
+	s = s .. "scale:" .. scale .. ";"
+
+	s = s .. "shader1:" .. shaderlist[currentshaderi1] .. ";"
+	s = s .. "shader2:" .. shaderlist[currentshaderi2] .. ";"
+
+	s = s .. "volume:" .. volume .. ";"
+	s = s .. "mouseowner:" .. mouseowner .. ";"
+
+	s = s .. "mappack:" .. mappack .. ";"
+
+	if vsync then
+		s = s .. "vsync;"
+	end
+
+	if gamefinished then
+		s = s .. "gamefinished;"
+	end
+
+	--reached worlds
+	for i, v in pairs(reachedworlds) do
+		s = s .. "reachedworlds:" .. i .. ":"
+		for j = 1, 8 do
+			if v[j] then
+				s = s .. 1
+			else
+				s = s .. 0
+			end
+
+			if j == 8 then
+				s = s .. ";"
+			else
+				s = s .. ","
+			end
+		end
+	end
+
+	love.filesystem.write("options.txt", s)
 end
 
 function loadconfig()
@@ -711,12 +933,12 @@ function defaultconfig()
 
 	local i = 1
 	controls[i] = {}
-	controls[i]["right"] = {"right"}
-	controls[i]["left"] = {"left"}
-	controls[i]["down"] = {"down"}
-	controls[i]["up"] = {"up"}
-	controls[i]["run"] = {"x"}
-	controls[i]["jump"] = {"z"}
+	controls[i]["right"] = {"d"}
+	controls[i]["left"] = {"a"}
+	controls[i]["down"] = {"s"}
+	controls[i]["up"] = {"w"}
+	controls[i]["run"] = {"lshift"}
+	controls[i]["jump"] = {"space"}
 	controls[i]["aimx"] = {""} --mouse aiming, so no need
 	controls[i]["aimy"] = {""}
 	controls[i]["portal1"] = {""}
@@ -738,6 +960,17 @@ function defaultconfig()
 		controls[i]["portal2"] = {"joy", i-1, "but", 6}
 		controls[i]["reload"] = {"joy", i-1, "but", 4}
 		controls[i]["use"] = {"joy", i-1, "but", 2}
+	end
+	-------------------
+	-- PORTAL COLORS --
+	-------------------
+
+	portalhues = {}
+	portalcolor = {}
+	for i = 1, 4 do
+		local players = 4
+		portalhues[i] = {(i-1)*(1/players), (i-1)*(1/players)+0.5/players}
+		portalcolor[i] = {getrainbowcolor(portalhues[i][1]), getrainbowcolor(portalhues[i][2])}
 	end
 
 	--hats.
@@ -772,7 +1005,7 @@ function defaultconfig()
 	flowercolor = {{252/255, 216/255, 168/255}, {216/255,  40/255,   0/255}, {252/255, 152/255,  56/255}}
 
 	--options
-	scale = 3
+	scale = 2
 	volume = 1
 	mappack = "smb"
 	vsync = true
@@ -780,93 +1013,341 @@ function defaultconfig()
 	reachedworlds = {}
 end
 
-function saveconfig()
+function suspendgame()
 	local s = ""
-	for i = 1, #controls do
-		s = s .. "playercontrols:" .. i .. ":"
-		local count = 0
-		for j, k in pairs(controls[i]) do
-			local c = ""
-			for l = 1, #controls[i][j] do
-				c = c .. controls[i][j][l]
-				if l ~= #controls[i][j] then
-					c = c ..  "-"
+	if marioworld == "M" then
+		marioworld = 8
+		mariolevel = 4
+	end
+	s = s .. "world/" .. marioworld .. "|"
+	s = s .. "level/" .. mariolevel .. "|"
+	s = s .. "coincount/" .. mariocoincount .. "|"
+	s = s .. "score/" .. marioscore .. "|"
+	s = s .. "players/" .. players .. "|"
+	for i = 1, players do
+		if mariolivecount ~= false then
+			s = s .. "lives/" .. i .. "/" .. mariolives[i] .. "|"
+		end
+		if objects["player"][i] then
+			s = s .. "size/" .. i .. "/" .. objects["player"][i].size .. "|"
+		else
+			s = s .. "size/" .. i .."/1|"
+		end
+	end
+	s = s .. "mappack/" .. mappack
+
+	love.filesystem.write("suspend.txt", s)
+
+	love.audio.stop()
+	menu_load()
+end
+
+function continuegame()
+	if not love.filesystem.getInfo("suspend.txt") then
+		return
+	end
+
+	local s = love.filesystem.read("suspend.txt")
+
+	mariosizes = {}
+	mariolives = {}
+
+	local split = s:split("|")
+	for i = 1, #split do
+		local split2 = split[i]:split("/")
+		if split2[1] == "world" then
+			marioworld = tonumber(split2[2])
+		elseif split2[1] == "level" then
+			mariolevel = tonumber(split2[2])
+		elseif split2[1] == "coincount" then
+			mariocoincount = tonumber(split2[2])
+		elseif split2[1] == "score" then
+			marioscore = tonumber(split2[2])
+		elseif split2[1] == "players" then
+			players = tonumber(split2[2])
+		elseif split2[1] == "lives" and mariolivecount ~= false then
+			mariolives[tonumber(split2[2])] = tonumber(split2[3])
+		elseif split2[1] == "size" then
+			mariosizes[tonumber(split2[2])] = tonumber(split2[3])
+		elseif split2[1] == "mappack" then
+			mappack = split2[2]
+		end
+	end
+
+	love.filesystem.remove("suspend.txt")
+end
+
+function changescale(s, fullscreen)
+	scale = s
+
+	if fullscreen then
+		fullscreen = true
+		scale = 2
+		love.window.setMode(800, 600, {fullscreen=fullscreen, vsync=vsync})
+	end
+
+	uispace = math.floor(width*16*scale/4)
+	love.window.setMode(width*16*scale, 224*scale, {fullscreen=fullscreen, vsync=vsync}) --27x14 blocks (15 blocks actual height)
+
+	gamewidth = love.graphics.getWidth()
+	gameheight = love.graphics.getHeight()
+
+	if shaders then
+		shaders:refresh()
+	end
+end
+
+function love.keypressed(key, unicode)
+	if keyprompt then
+		keypromptenter("key", key)
+		return
+	end
+
+	for i, v in pairs(guielements) do
+		if v:keypress(key) then
+			return
+		end
+	end
+
+	if key == "f12" then
+		love.mouse.setGrabbed(not love.mouse.isGrabbed())
+	end
+
+	if gamestate == "menu" or gamestate == "mappackmenu" or gamestate == "onlinemenu" or gamestate == "options" then
+		--konami code
+		if key == konami[konamii] then
+			konamii = konamii + 1
+			if konamii == #konami+1 then
+				playsound(konamisound)
+				gamefinished = true
+				saveconfig()
+				konamii = 1
+			end
+		else
+			konamii = 1
+		end
+		menu_keypressed(key, unicode)
+	elseif gamestate == "game" then
+		game_keypressed(key, unicode)
+	elseif gamestate == "intro" then
+		intro_keypressed()
+	end
+end
+
+function love.keyreleased(key, unicode)
+	if gamestate == "menu" or gamestate == "options" then
+		menu_keyreleased(key, unicode)
+	elseif gamestate == "game" then
+		game_keyreleased(key, unicode)
+	end
+end
+
+function love.mousepressed(x, y, button)
+	if gamestate == "menu" or gamestate == "mappackmenu" or gamestate == "onlinemenu" or gamestate == "options" then
+		menu_mousepressed(x, y, button)
+	elseif gamestate == "game" then
+		game_mousepressed(x, y, button)
+	elseif gamestate == "intro" then
+		intro_mousepressed()
+	end
+
+	for i, v in pairs(guielements) do
+		if v.priority then
+			if v:click(x, y, button) then
+				return
+			end
+		end
+	end
+
+	for i, v in pairs(guielements) do
+		if not v.priority then
+			if v:click(x, y, button) then
+				return
+			end
+		end
+	end
+end
+
+function love.mousereleased(x, y, button)
+	if gamestate == "menu" or gamestate == "options" then
+		menu_mousereleased(x, y, button)
+	elseif gamestate == "game" then
+		game_mousereleased(x, y, button)
+	end
+
+	for i, v in pairs(guielements) do
+		v:unclick(x, y, button)
+	end
+end
+
+function love.wheelmoved(x, y)
+	if gamestate == "game" then
+		game_wheelmoved(x, y)
+	end
+
+	for i, v in pairs(guielements) do
+		if v.priority then
+			if v:wheel(x, y) then
+				return
+			end
+		end
+	end
+
+	for i, v in pairs(guielements) do
+		if not v.priority then
+			if v:wheel(x, y) then
+				return
+			end
+		end
+	end
+end
+
+function love.joystickpressed(joystick, button)
+	if keyprompt then
+		keypromptenter("joybutton", joystick:getID(), button)
+		return
+	end
+
+	if gamestate == "menu" or gamestate == "options" then
+		menu_joystickpressed(joystick:getID(), button)
+	elseif gamestate == "game" then
+		game_joystickpressed(joystick:getID(), button)
+	end
+end
+
+function love.joystickreleased(joystick, button)
+	if gamestate == "menu" or gamestate == "options" then
+		menu_joystickreleased(joystick:getID(), button)
+	elseif gamestate == "game" then
+		game_joystickreleased(joystick:getID(), button)
+	end
+end
+
+function love.joystickaxis(joystick, axis, value)
+	local joysticks,found = love.joystick.getJoysticks(),false
+	for i,v in ipairs(joysticks) do
+		if v:getID() == joystick:getID() then
+			joystick,found = i,true
+			break
+		end
+	end
+
+	if found then
+		local stickmoved = false
+		local shouldermoved = false
+
+		--If this axis is a stick, get whether it just moved out of its deadzone
+		if math.abs(value) > joystickaimdeadzone and axisDeadZones[joystick][axis]["stick"] then
+			stickmoved = true
+			axisDeadZones[joystick][axis]["stick"] = false
+		elseif math.abs(value) < joystickaimdeadzone and not axisDeadZones[joystick][axis]["stick"] then
+			axisDeadZones[joystick][axis]["stick"] = true
+		end
+		--If this axis is a shoulder, get whether it just moved out of its deadzone
+		if value > 0 and axisDeadZones[joystick][axis]["shoulder"] then
+			shouldermoved = true
+			axisDeadZones[joystick][axis]["shoulder"] = false
+		elseif value < 0 and not axisDeadZones[joystick][axis]["shoulder"] then
+			axisDeadZones[joystick][axis]["shoulder"] = true
+		end
+		if gamestate == "menu" or gamestate == "options" then
+			menu_joystickaxis(joystick, axis, value, stickmoved, shouldermoved)
+		elseif gamestate == "game" then
+			game_joystickaxis(joystick, axis, value, stickmoved, shouldermoved)
+		end
+	end
+end
+function love.joystickhat(joystick, hat, direction)
+	local joysticks,found = love.joystick.getJoysticks(),false
+	for i,v in ipairs(joysticks) do
+		if v:getID() == joystick:getID() then
+			joystick,found = i,true
+			break
+		end
+	end
+
+	if found then
+		if gamestate == "menu" or gamestate == "options" then
+			menu_joystickhat(joystick, hat, direction)
+		elseif gamestate == "game" then
+			game_joystickhat(joystick, hat, direction)
+		end
+	end
+end
+-- love.gamepadpressed = love.joystickpressed
+-- love.gamepadreleased = love.joystickreleased
+-- love.gamepadaxis = love.joystickaxis
+
+function round(num, idp) --Not by me
+	local mult = 10^(idp or 0)
+	return math.floor(num * mult + 0.5) / mult
+end
+
+function getrainbowcolor(i)
+	local whiteness = 1
+	local r, g, b
+	if i < 1/6 then
+		r = 1
+		g = i*6
+		b = 0
+	elseif i >= 1/6 and i < 2/6 then
+		r = (1/6-(i-1/6))*6
+		g = 1
+		b = 0
+	elseif i >= 2/6 and i < 3/6 then
+		r = 0
+		g = 1
+		b = (i-2/6)*6
+	elseif i >= 3/6 and i < 4/6 then
+		r = 0
+		g = (1/6-(i-3/6))*6
+		b = 1
+	elseif i >= 4/6 and i < 5/6 then
+		r = (i-4/6)*6
+		g = 0
+		b = 1
+	else
+		r = 1
+		g = 0
+		b = (1/6-(i-5/6))*6
+	end
+
+	return {r*whiteness, g*whiteness, b*whiteness, 1}
+end
+
+function newRecoloredImage(path, tablein, tableout)
+	local imagedata = love.image.newImageData( path )
+	local width, height = imagedata:getWidth(), imagedata:getHeight()
+
+	for y = 0, height-1 do
+		for x = 0, width-1 do
+			local oldr, oldg, oldb, olda = imagedata:getPixel(x, y)
+
+			if olda > 0.5 then
+				for i = 1, #tablein do
+					if oldr == tablein[i][1] and oldg == tablein[i][2] and oldb == tablein[i][3] then
+						local r, g, b = unpack(tableout[i])
+						imagedata:setPixel(x, y, r, g, b, olda)
+					end
 				end
 			end
-			s = s .. j .. "-" .. c
-			count = count + 1
-			if count == 12 then
-				s = s .. ";"
-			else
-				s = s .. ","
-			end
 		end
 	end
 
-	for i = 1, #mariocolors do
-		s = s .. "playercolors:" .. i .. ":"
-		for j = 1, 3 do
-			for k = 1, 3 do
-				s = s .. mariocolors[i][j][k]
-				if j == 3 and k == 3 then
-					s = s .. ";"
-				else
-					s = s .. ","
-				end
-			end
-		end
+	return love.graphics.newImage(imagedata)
+end
+
+function string:split(delimiter) --Not by me
+	local result = {}
+	local from  = 1
+	local delim_from, delim_to = string.find( self, delimiter, from  )
+	while delim_from do
+		table.insert( result, string.sub( self, from , delim_from-1 ) )
+		from = delim_to + 1
+		delim_from, delim_to = string.find( self, delimiter, from  )
 	end
-
-	for i = 1, #mariohats do
-		s = s .. "mariohats:" .. i
-		if #mariohats[i] > 0 then
-			s = s .. ":"
-		end
-		for j = 1, #mariohats[i] do
-			s = s .. mariohats[i][j]
-			if j == #mariohats[i] then
-				s = s .. ";"
-			else
-				s = s .. ","
-			end
-		end
-
-		if #mariohats[i] == 0 then
-			s = s .. ";"
-		end
-	end
-
-	s = s .. "scale:" .. scale .. ";"
-
-	s = s .. "mappack:" .. mappack .. ";"
-
-	if vsync then
-		s = s .. "vsync;"
-	end
-
-	if gamefinished then
-		s = s .. "gamefinished;"
-	end
-
-	--reached worlds
-	for i, v in pairs(reachedworlds) do
-		s = s .. "reachedworlds:" .. i .. ":"
-		for j = 1, 8 do
-			if v[j] then
-				s = s .. 1
-			else
-				s = s .. 0
-			end
-
-			if j == 8 then
-				s = s .. ";"
-			else
-				s = s .. ","
-			end
-		end
-	end
-
-	love.filesystem.write("options.txt", s)
+	table.insert( result, string.sub( self, from  ) )
+	return result
 end
 
 function tablecontains(t, entry)
@@ -876,4 +1357,151 @@ function tablecontains(t, entry)
 		end
 	end
 	return false
+end
+
+function getaveragecolor(imgdata, cox, coy)
+	local xstart = (cox-1)*17
+	local ystart = (coy-1)*17
+
+	local r, g, b = 0, 0, 0
+
+	local count = 0
+
+	for x = xstart, xstart+15 do
+		for y = ystart, ystart+15 do
+			local pr, pg, pb, a = imgdata:getPixel(x, y)
+			if a > 0.5 then
+				r, g, b = r+pr, g+pg, b+pb
+				count = count + 1
+			end
+		end
+	end
+
+	r, g, b = r/count, g/count, b/count
+
+	return r, g, b
+end
+
+function keyprompt_update()
+	if keyprompt then
+		local jss = love.joystick.getJoysticks()
+
+		for i = 1, prompt.joysticks do
+			local js = jss[i]
+
+			if not js then
+				return
+			end
+
+			for j = 1, #prompt.joystick[i].validhats do
+				local dir = js:getHat(prompt.joystick[i].validhats[j])
+				if dir ~= "c" then
+					keypromptenter("joyhat", i, prompt.joystick[i].validhats[j], dir)
+					return
+				end
+			end
+
+			for j = 1, prompt.joystick[i].axes do
+				local value = js:getAxis(j)
+				if value > prompt.joystick[i].axisposition[j] + joystickdeadzone then
+					keypromptenter("joyaxis", i, j, "pos")
+					return
+				elseif value < prompt.joystick[i].axisposition[j] - joystickdeadzone then
+					keypromptenter("joyaxis", i, j, "neg")
+					return
+				end
+			end
+		end
+	end
+end
+
+function print_r (t, indent) --Not by me
+	local indent=indent or ''
+	for key,value in pairs(t) do
+		io.write(indent,'[',tostring(key),']')
+		if type(value)=="table" then io.write(':\n') print_r(value,indent..'\t')
+		else io.write(' = ',tostring(value),'\n') end
+	end
+end
+
+function love.focus(f)
+	if not f and gamestate == "game"and not editormode and not levelfinished and not everyonedead  then
+		pausemenuopen = true
+		love.audio.pause()
+	end
+end
+
+function openSaveFolder(subfolder) --By Slime
+	local path = love.filesystem.getSaveDirectory()
+	path = subfolder and path.."/"..subfolder or path
+
+	local cmdstr
+	local successval = 0
+
+	if os.getenv("WINDIR") then -- lolwindows
+		--cmdstr = "Explorer /root,%s"
+		if path:match("LOVE") then --hardcoded to fix ISO characters in usernames and made sure release mode doesn't mess anything up -saso
+			cmdstr = "Explorer %%appdata%%\\LOVE\\mari0"
+		else
+			cmdstr = "Explorer %%appdata%%\\mari0"
+		end
+		path = path:gsub("/", "\\")
+		successval = 1
+	elseif os.getenv("HOME") then
+		if path:match("/Library/Application Support") then -- OSX
+			cmdstr = "open \"%s\""
+		else -- linux?
+			cmdstr = "xdg-open \"%s\""
+		end
+	end
+
+	-- returns true if successfully opened folder
+	return cmdstr and os.execute(cmdstr:format(path)) == successval
+end
+
+function properprint(s, x, y)
+	local startx = x
+	for i = 1, string.len(tostring(s)) do
+		local char = string.sub(s, i, i)
+		if char == "|" then
+			x = startx-((i)*8)*scale
+			y = y + 10*scale
+		elseif fontquads[char] then
+			love.graphics.draw(fontimage, fontquads[char], x+((i-1)*8)*scale, y, 0, scale, scale)
+		end
+	end
+end
+
+function loadcustombackground()
+	local i = 1
+	custombackgroundimg = {}
+	custombackgroundwidth = {}
+	custombackgroundheight = {}
+	--try to load map specific background first
+	local levelstring = marioworld .. "-" .. mariolevel
+	if mariosublevel ~= 0 then
+		levelstring = levelstring .. "_" .. mariosublevel
+	end
+
+	while love.filesystem.getInfo("mappacks/" .. mappack .. "/" .. levelstring .. "background" .. i .. ".png") do
+		custombackgroundimg[i] = love.graphics.newImage("mappacks/" .. mappack .. "/" .. levelstring .. "background" .. i .. ".png")
+		custombackgroundwidth[i] = custombackgroundimg[i]:getWidth()/16
+		custombackgroundheight[i] = custombackgroundimg[i]:getHeight()/16
+		i = i +1
+	end
+
+	if #custombackgroundimg == 0 then
+		while love.filesystem.getInfo("mappacks/" .. mappack .. "/background" .. i .. ".png") do
+			custombackgroundimg[i] = love.graphics.newImage("mappacks/" .. mappack .. "/background" .. i .. ".png")
+			custombackgroundwidth[i] = custombackgroundimg[i]:getWidth()/16
+			custombackgroundheight[i] = custombackgroundimg[i]:getHeight()/16
+			i = i +1
+		end
+	end
+
+	if #custombackgroundimg == 0 then
+		custombackgroundimg[i] = love.graphics.newImage("graphics/SMB/portalbackground.png")
+		custombackgroundwidth[i] = custombackgroundimg[i]:getWidth()/16
+		custombackgroundheight[i] = custombackgroundimg[i]:getHeight()/16
+	end
 end
