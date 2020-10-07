@@ -933,12 +933,12 @@ function defaultconfig()
 
 	local i = 1
 	controls[i] = {}
-	controls[i]["right"] = {"d"}
-	controls[i]["left"] = {"a"}
-	controls[i]["down"] = {"s"}
-	controls[i]["up"] = {"w"}
-	controls[i]["run"] = {"lshift"}
-	controls[i]["jump"] = {"space"}
+	controls[i]["right"] = {"right"}
+	controls[i]["left"] = {"left"}
+	controls[i]["down"] = {"down"}
+	controls[i]["up"] = {"up"}
+	controls[i]["run"] = {"x"}
+	controls[i]["jump"] = {"z"}
 	controls[i]["aimx"] = {""} --mouse aiming, so no need
 	controls[i]["aimy"] = {""}
 	controls[i]["portal1"] = {""}

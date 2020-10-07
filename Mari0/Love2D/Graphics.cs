@@ -54,15 +54,16 @@ namespace Love2D
 
         public void draw(params object[] args)
         {
-            sb.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, getDefaultFilter());
+            sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, getDefaultFilter());
 
             if (args[0] is Spritebatch)
             {
                 Spritebatch sbatch = (Spritebatch)args[0];
+                float xscroll = Convert.ToSingle(args[1]);
                 foreach (var b in sbatch.batch)
                 {
                     var quad = b.quad;
-                    var x = b.x;
+                    var x = b.x + xscroll;
                     var y = b.y;
                     var r = b.r;
                     var sx = b.sx;
@@ -78,7 +79,6 @@ namespace Love2D
                         sb.Draw(sbatch.image.texture, new Vector2(x, y), srcrect, currentcolor, r, new Vector2(ox, oy), new Vector2(Math.Abs(sx), sy), flip, 1f);
                     }
                 }
-
             }
             else
             {
@@ -100,6 +100,11 @@ namespace Love2D
                 var ox = Convert.ToSingle(args.Length > 7 ? args[start + 5] : 0);
                 var oy = Convert.ToSingle(args.Length > 7 ? args[start + 6] : 0);
                 var type = args.Length > 8 && start == 1 ? args[start + 7] : "";
+
+                //x += ox;
+                //y += oy;
+
+                translatecoords(ref x, ref y);
 
                 SpriteEffects flip = sx < 0 ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
 
