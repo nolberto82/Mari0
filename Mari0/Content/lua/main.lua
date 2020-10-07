@@ -110,7 +110,7 @@ function love.load()
 	require "squid"
 	require "miniblock"
 	require "notgate"
-	require "musicloader"
+	--require "musicloader"
 
 	graphicspack = "SMB" --SMB, ALLSTARS
 	playertypei = 1

@@ -73,8 +73,9 @@ namespace Mari0
             key = new Love2D.Keyboard(lua, this, padbuttons);
             thread = new Thread(lua);
 
+#if DEBUG
             CopyFolders();
-
+#endif
             lua.DoString(@"package.path = package.path ..';" + luaprojectpath + "/?.lua'");
             lua.DoFile("main.lua");
 

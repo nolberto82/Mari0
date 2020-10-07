@@ -19,6 +19,7 @@ namespace Love2D
         private float transX;
         private float transY;
         private string graphicfilter;
+        public List<Spritebatch> batch;
 
         public Graphics(Lua l, Game g)
         {
@@ -53,53 +54,75 @@ namespace Love2D
 
         public void draw(params object[] args)
         {
-            Image img = (Image)args[0];
-            Quad quad = null;
-
-            var start = 1;
-            if (args[1] is Quad)
-            {
-                quad = (Quad)args[1];
-                start = 2;
-            }
-
-            var x = Convert.ToSingle(args[start + 0]);
-            var y = Convert.ToSingle(args[start + 1]);
-            var r = Convert.ToSingle(args[start + 2]);
-            var sx = Convert.ToSingle(args[start + 3]);
-            var sy = Convert.ToSingle(args[start + 4]);
-            var ox = Convert.ToSingle(args.Length > 7 ? args[start + 5] : 0);
-            var oy = Convert.ToSingle(args.Length > 7 ? args[start + 6] : 0);
-            var type = args.Length > 8 && start == 1 ? args[start + 7] : "";
-
-            SpriteEffects flip = sx < 0 ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
-
-            if (type.ToString() == "grow")
-            {
-                if (sx < 0)
-                {
-
-                }
-            }
-
             sb.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, getDefaultFilter());
 
-            if (quad != null)
+            if (args[0] is Spritebatch)
             {
-                Rectangle srcrect = new Rectangle(quad.x, quad.y, quad.w, quad.h);
-                sb.Draw(img.texture, new Vector2(x, y), srcrect, currentcolor, r, new Vector2(ox, oy), new Vector2(Math.Abs(sx), sy), flip, 1f);
+                Spritebatch sbatch = (Spritebatch)args[0];
+                foreach (var b in sbatch.batch)
+                {
+                    var quad = b.quad;
+                    var x = b.x;
+                    var y = b.y;
+                    var r = b.r;
+                    var sx = b.sx;
+                    var sy = b.sy;
+                    var ox = b.ox;
+                    var oy = b.oy;
+
+                    SpriteEffects flip = sx < 0 ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
+
+                    if (quad != null)
+                    {
+                        Rectangle srcrect = new Rectangle(quad.x, quad.y, quad.w, quad.h);
+                        sb.Draw(sbatch.image.texture, new Vector2(x, y), srcrect, currentcolor, r, new Vector2(ox, oy), new Vector2(Math.Abs(sx), sy), flip, 1f);
+                    }
+                }
+
             }
             else
             {
-                sb.Draw(img.texture, new Vector2(x, y), null, currentcolor, r, new Vector2(ox, oy), new Vector2(Math.Abs(sx), sy), flip, 1f);
-            }
+                Image img = (Image)args[0];
+                Quad quad = null;
 
+                var start = 1;
+                if (args[1] is Quad)
+                {
+                    quad = (Quad)args[1];
+                    start = 2;
+                }
+
+                var x = Convert.ToSingle(args[start + 0]);
+                var y = Convert.ToSingle(args[start + 1]);
+                var r = Convert.ToSingle(args[start + 2]);
+                var sx = Convert.ToSingle(args[start + 3]);
+                var sy = Convert.ToSingle(args[start + 4]);
+                var ox = Convert.ToSingle(args.Length > 7 ? args[start + 5] : 0);
+                var oy = Convert.ToSingle(args.Length > 7 ? args[start + 6] : 0);
+                var type = args.Length > 8 && start == 1 ? args[start + 7] : "";
+
+                SpriteEffects flip = sx < 0 ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
+
+                if (quad != null)
+                {
+                    Rectangle srcrect = new Rectangle(quad.x, quad.y, quad.w, quad.h);
+                    sb.Draw(img.texture, new Vector2(x, y), srcrect, currentcolor, r, new Vector2(ox, oy), new Vector2(Math.Abs(sx), sy), flip, 1f);
+                }
+                else
+                {
+                    sb.Draw(img.texture, new Vector2(x, y), null, currentcolor, r, new Vector2(ox, oy), new Vector2(Math.Abs(sx), sy), flip, 1f);
+                }
+            }
             sb.End();
         }
 
-        public void newSpriteBatch(params object[] args)
+        public Spritebatch newSpriteBatch(params object[] args)
         {
+            var img = (Image)args[0];
+            List<Spritebatch> obj_sb = new List<Spritebatch>();
+            obj_sb.Add(new Spritebatch(img));
 
+            return obj_sb[0];
         }
 
         public void setScissor(params object[] args)
