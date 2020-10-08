@@ -20,6 +20,8 @@ namespace Love2D
         private float transY;
         private string graphicfilter;
         public List<Spritebatch> batch;
+        private RasterizerState rasterState;
+        public Rectangle scissorRect;
 
         public Graphics(Lua l, Game g)
         {
@@ -44,6 +46,14 @@ namespace Love2D
             lua.RegisterFunction("love.graphics.setDefaultFilter", this, typeof(Graphics).GetMethod("setDefaultFilter"));
             lua.RegisterFunction("love.graphics.newSpriteBatch", this, typeof(Graphics).GetMethod("newSpriteBatch"));
             lua.RegisterFunction("love.graphics.setScissor", this, typeof(Graphics).GetMethod("setScissor"));
+
+            rasterState = new RasterizerState();
+            rasterState.MultiSampleAntiAlias = true;
+            rasterState.ScissorTestEnable = true;
+            rasterState.FillMode = FillMode.Solid;
+            rasterState.CullMode = CullMode.CullCounterClockwiseFace;
+            rasterState.DepthBias = 0;
+            rasterState.SlopeScaleDepthBias = 0;
         }
 
         void translatecoords(ref float x, ref float y)
@@ -54,7 +64,12 @@ namespace Love2D
 
         public void draw(params object[] args)
         {
-            sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, getDefaultFilter());
+            sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, getDefaultFilter(), null, rasterState);
+
+            if (scissorRect.Width != 0)
+            {
+                game.GraphicsDevice.ScissorRectangle = scissorRect;
+            }
 
             if (args[0] is Spritebatch)
             {
@@ -99,12 +114,13 @@ namespace Love2D
                 var sy = Convert.ToSingle(args[start + 4]);
                 var ox = Convert.ToSingle(args.Length > 7 ? args[start + 5] : 0);
                 var oy = Convert.ToSingle(args.Length > 7 ? args[start + 6] : 0);
-                var type = args.Length > 8 && start == 1 ? args[start + 7] : "";
-
-                //x += ox;
-                //y += oy;
 
                 translatecoords(ref x, ref y);
+
+                //x += (ox * Math.Abs(sx));
+                //y += (oy * Math.Abs(sy));
+
+                r *= (float)(180 / Math.PI);
 
                 SpriteEffects flip = sx < 0 ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
 
@@ -130,9 +146,19 @@ namespace Love2D
             return obj_sb[0];
         }
 
-        public void setScissor(params object[] args)
+        public void setScissor(params int[] args)
         {
+            if (args.Length == 0)
+            {
+                return;
+            }
 
+            var x = args[0];
+            var y = args[1];
+            var w = args[2];
+            var h = args[3];
+
+            scissorRect = new Rectangle(x, y, w, h);
         }
 
         public void setDefaultFilter(params string[] args)

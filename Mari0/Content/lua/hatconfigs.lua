@@ -9,6 +9,11 @@ hatoffsets["swimming"] = {{1, -1}, {1, -1}}
 hatoffsets["dead"] = false
 hatoffsets["grow"] = {-6, 0}
 
+hatoffsetsl = {}
+hatoffsetsl["idle"] = {3, 0}
+hatoffsetsl["running"] = {{3, 0}, {3, 0}, {4, -1}}
+hatoffsetsl["jumping"] = {3, -1}
+
 local i
 hat = {}
 

@@ -10,6 +10,11 @@ bighatoffsets["swimming"] = {{-5, -4}, {-5, -4}}
 bighatoffsets["ducking"] = {-5, -12}
 bighatoffsets["dead"] = false
 
+bighatoffsetsl = {}
+bighatoffsetsl["idle"] = {-5, -2}
+bighatoffsetsl["running"] = {{-4, -4}, {-5, -3}, {-6, -2}}
+bighatoffsetsl["jumping"] = {-5, -4}
+
 bighat = {}
 
 table.insert(bighat, {x = 0, y = 0, height = 4, graphic = love.graphics.newImage("graphics/SMB/bighats/standard.png")})

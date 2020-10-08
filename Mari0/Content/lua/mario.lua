@@ -8,7 +8,7 @@ function mario:init(x, y, i, animation, size, t)
 		self.size = size or 1
 	end
 	self.t = t or "portal"
-
+	
 	--PHYSICS STUFF
 	self.speedx = 0
 	self.speedy = 0
@@ -61,9 +61,9 @@ function mario:init(x, y, i, animation, size, t)
 			self.biggraphic[j] = bigmarioanimations[j]
 		end
 	end
-
+	self.size = 2
 	self.drawable = true
-	self.quad = marioidle[3]
+	self.quad = bigmarioidle[3]
 	self.colors = mariocolors[self.playernumber]
 	if self.size == 1 then
 		self.offsetX = 6
@@ -1013,6 +1013,7 @@ function mario:update(dt)
 		end
 	end
 
+	--self.runframe = 3
 	self:setquad()
 end
 
@@ -1473,7 +1474,7 @@ end
 
 function mario:setquad(anim, s)
 	local angleframe = getAngleFrame(self.pointingangle+self.rotation)
-
+	angleframe = 3
 	local animationstate = anim or self.animationstate
 	local size = s or self.size
 
@@ -2560,6 +2561,10 @@ end
 function mario:die(how)
 	print("Death cause: " .. how)
 
+	if (how ~= "pit") then
+		return
+	end
+
 	if how ~= "pit" and how ~= "time" then
 		if self.size > 1 then
 			self:shrink()
@@ -3017,7 +3022,7 @@ function mario:fire()
 	if not noupdate and self.controlsenabled and self.size == 3 and self.ducking == false then
 		if self.fireballcount < maxfireballs then
 			local dir = "right"
-			if self.pointingangle > 0 then
+			if self.animationdirection == "left" then
 				dir = "left"
 			end
 			table.insert(objects["fireball"], fireball:new(self.x+.5, self.y, dir, self))

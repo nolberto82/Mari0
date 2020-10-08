@@ -83,6 +83,7 @@ function levelscreen_load(reason, i)
 end
 
 function levelscreen_update(dt)
+	levelscreentimer = 6
 	levelscreentimer = levelscreentimer + dt
 	if levelscreentimer > blacktime then
 		if gamestate == "levelscreen" then

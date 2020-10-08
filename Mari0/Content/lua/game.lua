@@ -976,7 +976,7 @@ function game_draw()
                 --draw entities under blocks pipes
                 if #t > 1 and (t[1] == 7 or t[1] == 8) and (x ~= nil and y ~= nil) then
                     local tilenumber = t[2]
-                    love.graphics.setColor(1, 1, 1, 0.6)
+                    love.graphics.setColor(1, 1, 1, 0.3)
                     love.graphics.draw(entityquads[tilenumber].image, entityquads[tilenumber].quad, math.floor((x-1-math.fmod(xscroll, 1))*16*scale), ((y-1)*16-8)*scale, 0, scale, scale)
                     love.graphics.setColor(1, 1, 1, 1)
                 end				
@@ -1317,21 +1317,21 @@ function game_draw()
 									elseif v.ducking then
 										offsets = bighatoffsets["ducking"]
 									elseif v.animationstate == "running" or v.animationstate == "falling"  then
-										offsets = bighatoffsets["running"][v.runframe]
+										offsets = v.animationdirection == "right" and bighatoffsets["running"][v.runframe] or bighatoffsetsl["running"][v.runframe]
 									elseif v.animationstate == "climbing" then
 										offsets = bighatoffsets["climbing"][v.climbframe]
 									else
-										offsets = bighatoffsets[v.animationstate]
+										offsets = v.animationdirection == "left" and bighatoffsetsl[v.animationstate] or bighatoffsets[v.animationstate]
 									end
 								else
 									if underwater and (v.animationstate == "jumping" or v.animationstate == "falling") then
-										offsets = hatoffsets["swimming"][v.swimframe]
+										offsets =  hatoffsets["swimming"][v.swimframe]
 									elseif v.animationstate == "running" or v.animationstate == "falling"  then
-										offsets = hatoffsets["running"][v.runframe]
+										offsets = v.animationdirection == "right" and hatoffsets["running"][v.runframe] or hatoffsetsl["running"][v.runframe]
 									elseif v.animationstate == "climbing" then
 										offsets = hatoffsets["climbing"][v.climbframe]
 									else
-										offsets = hatoffsets[v.animationstate]
+										offsets = v.animationdirection == "left" and hatoffsetsl[v.animationstate] or hatoffsets[v.animationstate]
 									end
 								end
 
