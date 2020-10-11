@@ -43,7 +43,7 @@ namespace Love2D
 
         public bool getInfo(params string[] args)
         {
-            var path = args[0];
+            var path = args[0];//.Replace("/", "\\");
 
             if (File.Exists(path))
             {
@@ -58,14 +58,25 @@ namespace Love2D
         public LuaTable getDirectoryItems(params string[] args)
         {
             string path = args[0];
-            List<string> files = Directory.GetFiles(path).ToList();
+            string[] dirs = Directory.GetDirectories(path, "*", SearchOption.AllDirectories);
             lua.NewTable("tmp123");
             LuaTable table = lua["tmp123"] as LuaTable;
 
-            foreach (string s in files)
+            if (dirs.Length > 0)
             {
-                table[table.Keys.Count] = s;
+                foreach (var d in dirs)
+                {
+                    table[table.Keys.Count] = Path.GetFileName(d);
+                }
             }
+            else
+            {
+                foreach (var f in Directory.GetFiles(path))
+                {
+                    table[table.Keys.Count] = f;
+                }
+            }
+
             return table;
         }
 

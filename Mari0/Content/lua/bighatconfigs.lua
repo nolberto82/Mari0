@@ -14,6 +14,7 @@ bighatoffsetsl = {}
 bighatoffsetsl["idle"] = {-5, -2}
 bighatoffsetsl["running"] = {{-4, -4}, {-5, -3}, {-6, -2}}
 bighatoffsetsl["jumping"] = {-5, -4}
+bighatoffsetsl["ducking"] = {-4, -12}
 
 bighat = {}
 

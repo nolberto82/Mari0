@@ -244,7 +244,7 @@ function menu_draw()
 		--draw player
 		love.graphics.setColor(1, 1, 1, 1)
 		for k = 1, 3 do
-			love.graphics.setColor(unpack(mariocolors[j][k]))
+			love.graphics.setColor(table.unpack(mariocolors[j][k]))
 			love.graphics.draw(skinpuppet[k], (startx*16-6)*scale+8*(j-1)*scale, (starty*16-23)*scale, 0, scale, scale)
 		end
 
@@ -342,7 +342,7 @@ function menu_draw()
 		end
 
 		if players < 4 then
-			love.graphics.draw(playerselectimg, 102*scale, 138*scale, 0, -scale, scale)
+			love.graphics.draw(playerselectimg, 94*scale, 138*scale, 0, -scale, scale)
 		end
 
 		if selectworldopen then
@@ -743,7 +743,7 @@ function menu_draw()
 			--PREVIEW MARIO IN BIG. WITH BIG LETTERS
 			love.graphics.setColor(1, 1, 1, 1)
 			for i = 1, 3 do
-				love.graphics.setColor(unpack(mariocolors[skinningplayer][i]))
+				love.graphics.setColor(table.unpack(mariocolors[skinningplayer][i]))
 				love.graphics.draw(skinpuppet[i], 80*scale, 42*scale, 0, scale*2, scale*2)
 			end
 
@@ -772,7 +772,7 @@ function menu_draw()
 				love.graphics.setColor(1, 1, 1, 1)
 				love.graphics.draw(secondskinpuppet[0], 158*scale, (2+((j-1)*32)+infmarioY)*scale, infmarioR, scale, scale, 8, 8)
 				for i = 1, 3 do
-					love.graphics.setColor(unpack(mariocolors[skinningplayer][i]))
+					love.graphics.setColor(table.unpack(mariocolors[skinningplayer][i]))
 					love.graphics.draw(secondskinpuppet[i], 158*scale, (2+((j-1)*32)+infmarioY)*scale, infmarioR, scale, scale, 8, 8)
 				end
 			end
@@ -873,7 +873,7 @@ function menu_draw()
 			love.graphics.draw(huebarimg, 32*scale, 170*scale, 0, scale, scale)
 
 			--marker
-			love.graphics.setColor(unpack(portalcolor[skinningplayer][1]))
+			love.graphics.setColor(table.unpack(portalcolor[skinningplayer][1]))
 			love.graphics.rectangle("fill", math.floor(29 + (portalhues[skinningplayer][1])*178)*scale, 161*scale, 7*scale, 6*scale)
 			love.graphics.setColor(alpha, alpha, alpha)
 			love.graphics.draw(huebarmarkerimg, math.floor(28 + (portalhues[skinningplayer][1])*178)*scale, 160*scale, 0, scale, scale)
@@ -890,7 +890,7 @@ function menu_draw()
 			love.graphics.draw(huebarimg, 32*scale, 200*scale, 0, scale, scale)
 
 			--marker
-			love.graphics.setColor(unpack(portalcolor[skinningplayer][2]))
+			love.graphics.setColor(table.unpack(portalcolor[skinningplayer][2]))
 			love.graphics.rectangle("fill", math.floor(29 + (portalhues[skinningplayer][2])*178)*scale, 191*scale, 7*scale, 6*scale)
 			love.graphics.setColor(alpha, alpha, alpha)
 			love.graphics.draw(huebarmarkerimg, math.floor(28 + (portalhues[skinningplayer][2])*178)*scale, 190*scale, 0, scale, scale)

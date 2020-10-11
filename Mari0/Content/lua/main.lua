@@ -5,6 +5,10 @@
 ]]
 
 function love.load()
+	if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
+	  require("lldebugger").start()
+	end
+
 	marioversion = 1006
 	versionstring = "version 1.6"
 	shaderlist = love.filesystem.getDirectoryItems( "shaders/" )
@@ -623,7 +627,7 @@ function love.load()
 		delete_mappack(v)
 	end
 
-	game_load()
+	menu_load()
 end
 
 function love.update(dt)
@@ -939,6 +943,7 @@ function defaultconfig()
 	controls[i]["up"] = {"up"}
 	controls[i]["run"] = {"x"}
 	controls[i]["jump"] = {"z"}
+	controls[i]["rtrigger"] = {"a"}
 	controls[i]["aimx"] = {""} --mouse aiming, so no need
 	controls[i]["aimy"] = {""}
 	controls[i]["portal1"] = {""}
@@ -1109,9 +1114,9 @@ function love.keypressed(key, unicode)
 		end
 	end
 
-	if key == "f12" then
-		love.mouse.setGrabbed(not love.mouse.isGrabbed())
-	end
+	--if key == "f12" then
+	--	love.mouse.setGrabbed(not love.mouse.isGrabbed())
+	--end
 
 	if gamestate == "menu" or gamestate == "mappackmenu" or gamestate == "onlinemenu" or gamestate == "options" then
 		--konami code
@@ -1129,8 +1134,6 @@ function love.keypressed(key, unicode)
 		menu_keypressed(key, unicode)
 	elseif gamestate == "game" then
 		game_keypressed(key, unicode)
-	elseif gamestate == "intro" then
-		intro_keypressed()
 	end
 end
 

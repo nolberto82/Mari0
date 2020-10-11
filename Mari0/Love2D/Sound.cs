@@ -21,6 +21,7 @@ namespace Love2D
         public void setVolume(params float[] args)
         {
             float value = args[0];
+            value = value > 1f ? 1f : value < 0 ? 0f : value;
 
             sound.Volume = value;
         }

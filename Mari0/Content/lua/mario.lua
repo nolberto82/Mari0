@@ -1527,7 +1527,7 @@ function mario:jump()
 				return
 			end
 
-			if self.falling == false then
+			if self.falling == false or self.falling == true then
 				if self.size == 1 then
 					playsound(jumpsound)
 				else

@@ -976,7 +976,7 @@ function game_draw()
                 --draw entities under blocks pipes
                 if #t > 1 and (t[1] == 7 or t[1] == 8) and (x ~= nil and y ~= nil) then
                     local tilenumber = t[2]
-                    love.graphics.setColor(1, 1, 1, 0.3)
+                    love.graphics.setColor(1, 1, 1, 0.6)
                     love.graphics.draw(entityquads[tilenumber].image, entityquads[tilenumber].quad, math.floor((x-1-math.fmod(xscroll, 1))*16*scale), ((y-1)*16-8)*scale, 0, scale, scale)
                     love.graphics.setColor(1, 1, 1, 1)
                 end				
@@ -1315,7 +1315,7 @@ function game_draw()
 									elseif underwater and (v.animationstate == "jumping" or v.animationstate == "falling") then
 										offsets = bighatoffsets["swimming"][v.swimframe]
 									elseif v.ducking then
-										offsets = bighatoffsets["ducking"]
+										offsets = v.animationdirection == "right" and bighatoffsets["ducking"] or bighatoffsetsl["ducking"]
 									elseif v.animationstate == "running" or v.animationstate == "falling"  then
 										offsets = v.animationdirection == "right" and bighatoffsets["running"][v.runframe] or bighatoffsetsl["running"][v.runframe]
 									elseif v.animationstate == "climbing" then
@@ -1517,66 +1517,6 @@ function game_draw()
 		for j, w in pairs(portalparticles) do
 			w:draw()
 		end
-
-		--portals
-		for i = 1, players do
-			if objects["player"][i].portal1X ~= false then
-				local rotation = 0
-				local offsetx, offsety = 8, -3
-				if objects["player"][i].portal1facing == "right" then
-					rotation = math.pi/2
-					offsetx, offsety = 11, 0
-				elseif objects["player"][i].portal1facing == "down" then
-					rotation = math.pi
-					offsety = 3
-				elseif objects["player"][i].portal1facing == "left" then
-					rotation = math.pi*1.5
-					offsetx, offsety = 5, 0
-				end
-
-				local portalframe = portalanimation
-				local glowalpha = 100
-				if objects["player"][i].portal2X == false then
-
-				else
-					love.graphics.setColor(1, 1, 1, (80 - math.abs(portalframe-3)*10)/255)
-					love.graphics.draw(portalglow, math.floor(((objects["player"][i].portal1X-1-xscroll)*16+offsetx)*scale), math.floor(((objects["player"][i].portal1Y-1)*16+offsety)*scale), rotation, scale, scale, 8, 20)
-					love.graphics.setColor(1, 1, 1, 1)
-				end
-
-				love.graphics.setColor(unpack(objects["player"][i].portal1color))
-				love.graphics.draw(portalimage, portal1quad[portalframe], math.floor(((objects["player"][i].portal1X-1-xscroll)*16+offsetx)*scale), math.floor(((objects["player"][i].portal1Y-1)*16+offsety)*scale), rotation, scale, scale, 8, 8)
-			end
-
-			if objects["player"][i].portal2X ~= false then
-				rotation = 0
-				offsetx, offsety = 8, -3
-				if objects["player"][i].portal2facing == "right" then
-					rotation = math.pi/2
-					offsetx, offsety = 11, 0
-				elseif objects["player"][i].portal2facing == "down" then
-					rotation = math.pi
-					offsety = 3
-				elseif objects["player"][i].portal2facing == "left" then
-					rotation = math.pi*1.5
-					offsetx, offsety = 5, 0
-				end
-
-				local portalframe = portalanimation
-				if objects["player"][i].portal1X == false then
-
-				else
-					love.graphics.setColor(1, 1, 1, (80 - math.abs(portalframe-3)*10)/255)
-					love.graphics.draw(portalglow, math.floor(((objects["player"][i].portal2X-1-xscroll)*16+offsetx)*scale), math.floor(((objects["player"][i].portal2Y-1)*16+offsety)*scale), rotation, scale, scale, 8, 20)
-					love.graphics.setColor(1, 1, 1, 1)
-				end
-
-				love.graphics.setColor(unpack(objects["player"][i].portal2color))
-				love.graphics.draw(portalimage, portal2quad[portalframe], math.floor(((objects["player"][i].portal2X-1-xscroll)*16+offsetx)*scale), math.floor(((objects["player"][i].portal2Y-1)*16+offsety)*scale), rotation, scale, scale, 8, 8)
-			end
-		end
-
-		love.graphics.setColor(1, 1, 1)
 
 		--COINBLOCKANIMATION
 		for i, v in pairs(coinblockanimations) do
@@ -2241,77 +2181,6 @@ function loadmap(filename)
 						pipestartx = x
 						pipestarty = y
 
-					elseif t == "emancehor" then
-						table.insert(emancipationgrills, emancipationgrill:new(x, y, "hor"))
-					elseif t == "emancever" then
-						table.insert(emancipationgrills, emancipationgrill:new(x, y, "ver"))
-
-					elseif t == "doorver" then
-						table.insert(objects["door"], door:new(x, y, r, "ver"))
-					elseif t == "doorhor" then
-						table.insert(objects["door"], door:new(x, y, r, "hor"))
-
-					elseif t == "button" then
-						table.insert(objects["button"], button:new(x, y))
-
-					elseif t == "pushbuttonleft" then
-						table.insert(objects["pushbutton"], pushbutton:new(x, y, "left"))
-					elseif t == "pushbuttonright" then
-						table.insert(objects["pushbutton"], pushbutton:new(x, y, "right"))
-
-					elseif t == "wallindicator" then
-						table.insert(objects["wallindicator"], wallindicator:new(x, y, r))
-
-					elseif t == "groundlightver" then
-						table.insert(objects["groundlight"], groundlight:new(x, y, 1, r))
-					elseif t == "groundlighthor" then
-						table.insert(objects["groundlight"], groundlight:new(x, y, 2, r))
-					elseif t == "groundlightupright" then
-						table.insert(objects["groundlight"], groundlight:new(x, y, 3, r))
-					elseif t == "groundlightrightdown" then
-						table.insert(objects["groundlight"], groundlight:new(x, y, 4, r))
-					elseif t == "groundlightdownleft" then
-						table.insert(objects["groundlight"], groundlight:new(x, y, 5, r))
-					elseif t == "groundlightleftup" then
-						table.insert(objects["groundlight"], groundlight:new(x, y, 6, r))
-
-					elseif t == "faithplateup" then
-						table.insert(objects["faithplate"], faithplate:new(x, y, "up"))
-					elseif t == "faithplateright" then
-						table.insert(objects["faithplate"], faithplate:new(x, y, "right"))
-					elseif t == "faithplateleft" then
-						table.insert(objects["faithplate"], faithplate:new(x, y, "left"))
-
-					elseif t == "laserright" then
-						table.insert(objects["laser"], laser:new(x, y, "right", r))
-					elseif t == "laserdown" then
-						table.insert(objects["laser"], laser:new(x, y, "down", r))
-					elseif t == "laserleft" then
-						table.insert(objects["laser"], laser:new(x, y, "left", r))
-					elseif t == "laserup" then
-						table.insert(objects["laser"], laser:new(x, y, "up", r))
-
-					elseif t == "lightbridgeright" then
-						table.insert(objects["lightbridge"], lightbridge:new(x, y, "right", r))
-					elseif t == "lightbridgeleft" then
-						table.insert(objects["lightbridge"], lightbridge:new(x, y, "left", r))
-					elseif t == "lightbridgedown" then
-						table.insert(objects["lightbridge"], lightbridge:new(x, y, "down", r))
-					elseif t == "lightbridgeup" then
-						table.insert(objects["lightbridge"], lightbridge:new(x, y, "up", r))
-
-					elseif t == "laserdetectorright" then
-						table.insert(objects["laserdetector"], laserdetector:new(x, y, "right"))
-					elseif t == "laserdetectordown" then
-						table.insert(objects["laserdetector"], laserdetector:new(x, y, "down"))
-					elseif t == "laserdetectorleft" then
-						table.insert(objects["laserdetector"], laserdetector:new(x, y, "left"))
-					elseif t == "laserdetectorup" then
-						table.insert(objects["laserdetector"], laserdetector:new(x, y, "up"))
-
-					elseif t == "boxtube" then
-						table.insert(objects["cubedispenser"], cubedispenser:new(x, y, r))
-
 					elseif t == "timer" then
 						table.insert(objects["walltimer"], walltimer:new(x, y, r[3], r))
 					elseif t == "notgate" then
@@ -2321,9 +2190,6 @@ function loadmap(filename)
 						table.insert(platformspawners, platformspawner:new(x, y, "up", r[3]))
 					elseif t == "platformspawnerdown" then
 						table.insert(platformspawners, platformspawner:new(x, y, "down", r[3]))
-
-					elseif t == "box" then
-						table.insert(objects["box"], box:new(x, y))
 
 					elseif t == "firestart" then
 						firestartx = x
@@ -2364,23 +2230,6 @@ function loadmap(filename)
 					elseif t == "mazeend" then
 						if not tablecontains(mazeends, x) then
 							table.insert(mazeends, x)
-						end
-
-					elseif t == "geltop" then
-						if tilequads[map[x][y][1]].collision then
-							map[x][y]["gels"]["top"] = r[3]
-						end
-					elseif t == "gelleft" then
-						if tilequads[map[x][y][1]].collision then
-							map[x][y]["gels"]["left"] = r[3]
-						end
-					elseif t == "gelbottom" then
-						if tilequads[map[x][y][1]].collision then
-							map[x][y]["gels"]["bottom"] = r[3]
-						end
-					elseif t == "gelright" then
-						if tilequads[map[x][y][1]].collision then
-							map[x][y]["gels"]["right"] = r[3]
 						end
 					end
 				end
@@ -3783,6 +3632,11 @@ end
 
 function upkey(i)
 	local s = controls[i]["up"]
+	return checkkey(s)
+end
+
+function rtriggerkey(i)
+	local s = controls[i]["rtrigger"]
 	return checkkey(s)
 end
 

@@ -42,7 +42,8 @@ namespace Mari0
                 { Buttons.DPadUp, "up"},
                 { Buttons.A, "x"},
                 { Buttons.B, "z"},
-                { Buttons.Start, "enter"}
+                { Buttons.Start, "enter"},
+                { Buttons.RightShoulder, "a"}
             };
 
             lua = new Lua();
@@ -67,16 +68,20 @@ namespace Mari0
 
             //Graphics
             gfx = new Graphics(lua, this);
-            win = new Window(lua, this, graphics);
+            win = new Window(lua, this, graphics, gfx);
             file = new Filesystem(lua);
             audio = new Audio(lua);
             key = new Love2D.Keyboard(lua, this, padbuttons);
             thread = new Thread(lua);
 
+            //lua.RegisterFunction("lua_remove", this, typeof(Game1).GetMethod("lua_remove_alt"));
+
 #if DEBUG
             CopyFolders();
 #endif
+
             lua.DoString(@"package.path = package.path ..';" + luaprojectpath + "/?.lua'");
+            //lua.DoString(@"package.cpath = package.cpath ..';" + luaprojectpath + "/debuggee/socket/?.dll'");
             lua.DoFile("main.lua");
 
             try
@@ -180,6 +185,11 @@ namespace Mari0
         public static void lua_print(object text)
         {
             Console.WriteLine(text.ToString());
+        }
+
+        public static void lua_remove_alt()
+        {
+            Console.WriteLine("success");
         }
     }
 }

@@ -22,6 +22,7 @@ namespace Love2D
         public List<Spritebatch> batch;
         private RasterizerState rasterState;
         public Rectangle scissorRect;
+        public Texture2D recttexture;
 
         public Graphics(Lua l, Game g)
         {
@@ -46,6 +47,7 @@ namespace Love2D
             lua.RegisterFunction("love.graphics.setDefaultFilter", this, typeof(Graphics).GetMethod("setDefaultFilter"));
             lua.RegisterFunction("love.graphics.newSpriteBatch", this, typeof(Graphics).GetMethod("newSpriteBatch"));
             lua.RegisterFunction("love.graphics.setScissor", this, typeof(Graphics).GetMethod("setScissor"));
+            lua.RegisterFunction("love.graphics.rectangle", this, typeof(Graphics).GetMethod("rectangle"));
 
             rasterState = new RasterizerState();
             rasterState.MultiSampleAntiAlias = true;
@@ -54,6 +56,11 @@ namespace Love2D
             rasterState.CullMode = CullMode.CullCounterClockwiseFace;
             rasterState.DepthBias = 0;
             rasterState.SlopeScaleDepthBias = 0;
+
+            setScissor();
+
+            recttexture = new Texture2D(game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
+            recttexture.SetData<Color>(new Color[] { Color.White });
         }
 
         void translatecoords(ref float x, ref float y)
@@ -64,12 +71,11 @@ namespace Love2D
 
         public void draw(params object[] args)
         {
-            sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, getDefaultFilter(), null, rasterState);
+            float depth = 1f;
 
-            if (scissorRect.Width != 0)
-            {
-                game.GraphicsDevice.ScissorRectangle = scissorRect;
-            }
+            sb.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, getDefaultFilter(), null, rasterState);
+
+            game.GraphicsDevice.ScissorRectangle = scissorRect;
 
             if (args[0] is Spritebatch)
             {
@@ -91,7 +97,7 @@ namespace Love2D
                     if (quad != null)
                     {
                         Rectangle srcrect = new Rectangle(quad.x, quad.y, quad.w, quad.h);
-                        sb.Draw(sbatch.image.texture, new Vector2(x, y), srcrect, currentcolor, r, new Vector2(ox, oy), new Vector2(Math.Abs(sx), sy), flip, 1f);
+                        sb.Draw(sbatch.image.texture, new Vector2(x, y), srcrect, currentcolor, r, new Vector2(ox, oy), new Vector2(Math.Abs(sx), sy), flip, depth);
                     }
                 }
             }
@@ -127,13 +133,14 @@ namespace Love2D
                 if (quad != null)
                 {
                     Rectangle srcrect = new Rectangle(quad.x, quad.y, quad.w, quad.h);
-                    sb.Draw(img.texture, new Vector2(x, y), srcrect, currentcolor, r, new Vector2(ox, oy), new Vector2(Math.Abs(sx), sy), flip, 1f);
+                    sb.Draw(img.texture, new Vector2(x, y), srcrect, currentcolor, r, new Vector2(ox, oy), new Vector2(Math.Abs(sx), sy), flip, depth);
                 }
                 else
                 {
-                    sb.Draw(img.texture, new Vector2(x, y), null, currentcolor, r, new Vector2(ox, oy), new Vector2(Math.Abs(sx), sy), flip, 1f);
+                    sb.Draw(img.texture, new Vector2(x, y), null, currentcolor, r, new Vector2(ox, oy), new Vector2(Math.Abs(sx), sy), flip, depth);
                 }
             }
+
             sb.End();
         }
 
@@ -150,6 +157,7 @@ namespace Love2D
         {
             if (args.Length == 0)
             {
+                scissorRect = new Rectangle(0, 0, game.Window.ClientBounds.Width, game.Window.ClientBounds.Height);
                 return;
             }
 
@@ -204,6 +212,28 @@ namespace Love2D
             return obj_quad[0];
         }
 
+        public void rectangle(params object[] args)
+        {
+            var mode = args[0].ToString();
+            var x = Convert.ToInt32(args[1]);
+            var y = Convert.ToInt32(args[2]);
+            var w = Convert.ToInt32(args[3]);
+            var h = Convert.ToInt32(args[4]);
+
+            sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, getDefaultFilter(), null, rasterState);
+
+            if (mode == "fill")
+            {
+                sb.Draw(recttexture, new Rectangle(x, y, w, h), currentcolor);
+            }
+            else
+            {
+
+            }
+
+            sb.End();
+        }
+
         public void clear()
         {
             game.GraphicsDevice.Clear(new Color(0, 0, 0));
@@ -214,8 +244,9 @@ namespace Love2D
             float r = args[0];
             float g = args[1];
             float b = args[2];
+            float a = args.Length == 4 ? args[3] : 1f;
 
-            currentcolor = new Color(r, g, b);
+            currentcolor = new Color(r, g, b, a);
         }
 
         public void setBackgroundColor(params float[] args)

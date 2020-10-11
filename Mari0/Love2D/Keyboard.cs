@@ -53,7 +53,7 @@ namespace Love2D
             {
                 foreach (Keys key in newkeys)
                 {
-                    if (ks.IsKeyDown(key) && !oks.IsKeyDown(key) && !using_joystick)
+                    if (ks.IsKeyDown(key) && !oks.IsKeyDown(key))
                     {
                         lua.GetFunction("love.keypressed").Call(key.ToString().ToLower());
                     }
@@ -74,7 +74,10 @@ namespace Love2D
             {
                 foreach (Keys key in relkeys)
                 {
-                    lua.GetFunction("love.keyreleased").Call(key.ToString().ToLower());
+                    if (ks.IsKeyUp(key) && !oks.IsKeyUp(key))
+                    {
+                        lua.GetFunction("love.keyreleased").Call(key.ToString().ToLower());
+                    }
                 }
             }
 

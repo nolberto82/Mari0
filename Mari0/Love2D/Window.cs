@@ -11,12 +11,14 @@ namespace Love2D
         private Lua lua;
         private Game game;
         private GraphicsDeviceManager graphics;
+        private Graphics gfx;
 
-        public Window(Lua l, Game g, GraphicsDeviceManager gdm)
+        public Window(Lua l, Game g, GraphicsDeviceManager gdm, Graphics _gfx)
         {
             lua = l;
             game = g;
             graphics = gdm;
+            gfx = _gfx;
 
             lua.NewTable("love.window");
             lua.RegisterFunction("love.window.setMode", this, typeof(Window).GetMethod("setMode"));
@@ -31,6 +33,8 @@ namespace Love2D
             graphics.PreferredBackBufferWidth = w;
             graphics.PreferredBackBufferHeight = h;
             graphics.ApplyChanges();
+
+            gfx.setScissor();
         }
 
         public void setTitle(params string[] args)
